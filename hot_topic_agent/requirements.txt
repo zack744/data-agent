@@ -1,0 +1,11 @@
+langchain
+langchain-community
+langchain-openai
+python-dotenv
+pydantic
+pandas
+numpy
+tiktoken
+fastapi
+uvicorn
+jinja2

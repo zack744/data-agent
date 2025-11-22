@@ -1,0 +1,13 @@
+# 热搜选题分析报告
+
+主题：{{ topic }}
+
+概览：
+- 样本量：{{ summary.count }}
+- 总播放：{{ summary.views_sum }}
+- 平均点赞率：{{ summary.like_rate_avg }}
+
+推荐标题：
+{% for t in titles %}
+- {{ t }}
+{% endfor %}
