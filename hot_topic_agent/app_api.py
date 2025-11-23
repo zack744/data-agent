@@ -29,10 +29,10 @@ def report(req: ReportRequest):
     加载B站数据，进行统计汇总，生成标题建议，并输出Markdown报告
     """
     # 1. 加载B站热搜数据
-    data = load_bilibili_data.invoke({"date": req.date})
+    data = load_bilibili_data.func(date=req.date)
 
     # 2. 对数据进行统计汇总
-    summary = stat_summary.invoke({"records": data})
+    summary = stat_summary.func(records=data)
 
     # 3. 初始化标题列表
     titles: list[str] = []
@@ -40,7 +40,7 @@ def report(req: ReportRequest):
 
     # 4. 如果配置了OpenAI API密钥，则生成标题建议
     if s.OPENAI_API_KEY:
-        titles = title_generator.invoke({"topic": req.topic, "context": "热搜选题"})
+        titles = title_generator.func(topic=req.topic, context="热搜选题")
 
     # 5. 渲染Markdown格式的报告
     md = render_markdown(req.topic, summary, titles)
