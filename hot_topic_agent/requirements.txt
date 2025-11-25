@@ -1,4 +1,5 @@
 langchain
+langchain-core
 langchain-community
 langchain-openai
 python-dotenv

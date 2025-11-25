@@ -149,3 +149,5 @@ data/processed/
 # Temporary files
 *.tmp
 *.temp
+
+langchain-learn
