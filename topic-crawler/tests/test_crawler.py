@@ -4,28 +4,29 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from src.models import NewsItem
-from src.crawler import fetch_newsnow_latest
+from src.models import TopicItem
+from src.crawler_bili import fetch_hot_topics
 
 
 def test_model_required_fields():
-    item = NewsItem(id="id1", title="t", url="https://example.com")
-    assert item.id == "id1"
+    item = TopicItem(id="BV123", platform="bilibili", keyword="k", title="t")
+    assert item.id == "BV123"
+    assert item.platform == "bilibili"
+    assert item.keyword == "k"
     assert item.title == "t"
-    assert item.url == "https://example.com"
 
 
-def test_empty_platform_returns_empty():
-    items = asyncio.run(fetch_newsnow_latest(""))
+def test_empty_keyword_returns_empty():
+    items = asyncio.run(fetch_hot_topics("", 10))
     assert items == []
 
 
-def test_fetch_platform_toutiao():
+def test_fetch_limit_one():
     try:
-        items = asyncio.run(fetch_newsnow_latest("toutiao", "今日头条"))
+        items = asyncio.run(fetch_hot_topics("AI", 1))
     except Exception:
         pytest.skip("network")
     assert isinstance(items, list)
-    assert all(isinstance(i, NewsItem) for i in items)
+    assert len(items) <= 1
     if items:
-        assert items[0].rank == 1
+        assert isinstance(items[0], TopicItem)
