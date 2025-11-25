@@ -2,12 +2,12 @@ import sys
 import json
 import asyncio
 from pathlib import Path
-from src.crawler import fetch_hot_topics, fetch_hot_search, fetch_bilibili_hot_topics, enrich_hot_topics_with_stats
+from src.crawler import fetch_newsnow_latest, fetch_newsnow_batch
 
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("usage: python cli.py <keyword|--hot|--hot-topics> [limit] [--compact] [--per N]", file=sys.stderr)
+        print("usage: python cli.py <platform_id|--all> [--compact]", file=sys.stderr)
         return 2
     args = sys.argv[1:]
     compact = False
@@ -23,30 +23,29 @@ def main() -> int:
             print("--per requires integer", file=sys.stderr)
             return 2
         args = args[:i] + args[i+2:]
-    keyword = args[0]
-    limit = 20
-    if len(args) >= 2:
-        try:
-            limit = int(args[1])
-        except Exception:
-            print("limit must be integer", file=sys.stderr)
-            return 2
-    if keyword == "--hot":
-        items = asyncio.run(fetch_hot_search(limit))
-    elif keyword == "--hot-topics":
-        hot_items = asyncio.run(fetch_bilibili_hot_topics(limit))
-        if per is not None:
-            hot_items = asyncio.run(enrich_hot_topics_with_stats(hot_items, per))
-        items = hot_items
+    target = args[0]
+    if target == "--all":
+        # 最小集平台，后续可改为读取 YAML
+        platforms = [("toutiao", "今日头条"), ("weibo", "微博"), ("zhihu", "知乎")]
+        data = asyncio.run(fetch_newsnow_batch(platforms))
+        payload = {pid: [i.model_dump(mode="json", exclude_none=True) for i in items] for pid, items in data.items()}
+        if compact:
+            for pid in payload:
+                for i in payload[pid]:
+                    i.pop("raw", None)
+        print(json.dumps(payload, ensure_ascii=False))
+        out = Path(__file__).with_name("newsnow.json")
+        out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        return 0
     else:
-        items = asyncio.run(fetch_hot_topics(keyword, limit))
+        items = asyncio.run(fetch_newsnow_latest(target))
     if compact:
         for i in items:
             if hasattr(i, "raw"):
                 i.raw = None
     payload = [i.model_dump(mode="json", exclude_none=True) for i in items]
     print(json.dumps(payload, ensure_ascii=False))
-    out = Path(__file__).with_name("topics.json")
+    out = Path(__file__).with_name("newsnow.json")
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return 0
 
